@@ -1,231 +1,104 @@
-# RAG-QA-System (检索增强生成问答系统)
+# RAG智能问答系统
 
-## 项目简介
+基于Ollama本地大模型、LangChain框架和Streamlit构建的智能问答系统，能够"学习"指定本地文档并回答相关问题。
 
-RAG-QA-System 是一个基于检索增强生成（RAG）技术的智能问答系统，支持上传文档、提取关键信息、通过本地语言模型进行智能问答。系统采用Streamlit构建Web界面，使用Ollama集成本地LLM，实现离线、隐私保护的智能文档问答能力。
+## 功能特点
 
-## 环境要求与安装步骤
+- 📚 支持PDF、DOCX、TXT多种文档格式
+- 🔍 基于Chroma向量数据库的高效检索
+- 🤖 集成Ollama本地大模型
+- 💬 支持多轮对话记忆
+- 📊 可视化Web界面
 
-### Python版本要求
-- Python 3.9+
+## 环境要求
 
-### 1. 克隆仓库
+- Python 3.8+
+- Ollama
+- 至少8GB内存（推荐16GB+）
+
+## 安装步骤
+
+### 1. 安装Ollama
+
+访问 [Ollama官方网站](https://ollama.com/) 下载并安装Ollama。
+
+### 2. 下载模型
+
 ```bash
-git clone https://github.com/yzyyzyzz/RAG-QA-System---2405030116.git
-cd RAG-QA-System---2405030116
+ollama pull qwen2:7b
 ```
 
-### 2. 创建虚拟环境（推荐）
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
+### 3. 安装依赖
 
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. 安装依赖库
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. 安装Ollama
-- **Windows/macOS**: 访问 [Ollama官网](https://ollama.ai) 下载安装程序
-- **Linux**: 
-```bash
-curl https://ollama.ai/install.sh | sh
-```
-
-### 5. 下载模型
-```bash
-# 下载Mistral模型（推荐，7B，速度快）
-ollama pull mistral
-
-# 或下载其他模型
-ollama pull llama2
-ollama pull neural-chat
-```
-
-### 6. 启动Ollama服务
-```bash
-ollama serve
-```
-Ollama默认运行在 `http://localhost:11434`
-
 ## 使用说明
 
-### 启动Web应用
+### 运行Web应用
+
 ```bash
-# 确保Ollama服务已运行
 streamlit run app.py
 ```
-应用将在 `http://localhost:8501` 打开
 
-### 如何上传文档
-1. 在左侧边栏"文档管理"部分点击"上传PDF文件"
-2. 选择本地PDF文件（支持单个或批量上传）
-3. 系统自动提取文本和进行向量嵌入
-4. 成功提示后即可开始提问
+### 使用步骤
 
-### 如何提问
-1. 在主界面"输入您的问题"文本框输入问题
-2. 点击"提交问题"按钮
-3. 系统检索相关文档片段并生成答案
-4. 查看答案和引用源的文档片段
+1. 在左侧侧边栏上传文档（支持PDF、DOCX、TXT格式）
+2. 点击"构建知识库"按钮，系统会自动解析文档并构建向量库
+3. 在问答交互区输入问题并提问
+4. 系统会基于知识库内容回答问题
 
-### 高级功能
-- **参数调整**：左侧边栏可调整检索相关性阈值、答案生成参数
-- **文档管理**：查看已上传文档、删除文档、管理向量数据库
-- **历史记录**：查看问答历史记录、导出对话
+### 命令行版本
 
-## 关键技术点说明
-
-### RAG流程
-```
-文档输入 → 文本分割 → 向量嵌入 → 向量数据库存储
-                              ↓
-用户问题 → 向量嵌入 → 向量检索 → 相关段落 → 提示词构造 → LLM生成答案
-```
-
-### 所用模型
-- **LLM模型**: Mistral 7B（默认）或 Llama2 等本地模型，通过Ollama调用
-- **嵌入模型**: sentence-transformers 的 all-MiniLM-L6-v2（轻量级、速度快）
-- **向量数据库**: Chroma（轻量级向量数据库，便于本地部署）
-
-### 嵌入方式
-- 文档分割：使用RecursiveCharacterTextSplitter，chunk_size=1000，overlap=200
-- 向量化：使用HuggingFace sentence-transformers模型
-- 相似度匹配：使用余弦相似度检索Top-K相关文档
-
-### 系统架构
-```
-┌─────────────────────────────────────┐
-│      Streamlit Web Interface        │
-├─────────────────────────────────────┤
-│  Document Manager | Chat Interface  │
-├─────────────────────────────────────┤
-│         RAG Pipeline                │
-├─────────────────────────────────────┤
-│  Embedding │ Vector DB │ LLM API    │
-└─────────────────────────────────────┘
-     ↓             ↓           ↓
-  sentence-      Chroma    Ollama
-  transformers             Service
+```bash
+python cli_qa.py
 ```
 
 ## 项目结构
+
 ```
-RAG-QA-System-2405030116/
-├── app.py                    # Streamlit主应用
-├── requirements.txt          # 依赖库列表
-├── .gitignore               # Git忽略文件配置
-├── README.md                # 项目说明文档
-├── config.py                # 配置文件
-├── core/
-│   ├── __init__.py
-│   ├── rag_pipeline.py      # RAG核心逻辑
-│   ├── document_processor.py # 文档处理模块
-│   ├── embedding.py         # 向量嵌入模块
-│   └── llm_handler.py       # LLM调用处理
-├── utils/
-│   ├── __init__.py
-│   ├── file_handler.py      # 文件处理工具
-│   ├── logging_config.py    # 日志配置
-│   └── constants.py         # 常量定义
-├── data/
-│   └── uploads/             # 上传文档存储目录
-├── docs/
-│   ├── architecture.md      # 架构设计文档
-│   ├── api_reference.md     # API参考
-│   └── examples/            # 使用示例
-└── tests/
-    ├── test_rag_pipeline.py
-    └── test_document_processor.py
+.
+├── app.py              # Streamlit Web应用
+├── knowledge_base.py   # 知识库模块
+├── rag_chain.py        # RAG问答链模块
+├── cli_qa.py           # 命令行版本
+├── test_ollama.py      # Ollama测试脚本
+├── requirements.txt    # 依赖清单
+├── .gitignore          # Git忽略配置
+├── documents/          # 示例文档目录
+│   ├── nlp_introduction.txt
+│   ├── transformer_architecture.txt
+│   ├── bert_model.txt
+│   └── gpt_model.txt
+└── chroma_db/          # 向量数据库（运行后自动生成）
 ```
 
-## 项目效果截图
+## 关键技术点
 
-### 1. 首页 - 问答界面
-![Home Page](docs/screenshots/01_home_page.png)
-- 左侧边栏：文档管理和参数设置
-- 中央区域：问题输入框和答案显示
-- 实时显示检索的相关文档片段
+### RAG流程
 
-### 2. 文档上传 - 处理进度
-![Document Upload](docs/screenshots/02_document_upload.png)
-- 支持拖拽上传PDF文件
-- 实时显示文件处理进度
-- 成功/失败提示
+1. **文档加载**：支持PDF、DOCX、TXT等多种格式文档的读取
+2. **文本分块**：使用RecursiveCharacterTextSplitter进行分块（chunk_size=1000, chunk_overlap=200）
+3. **向量化**：使用HuggingFace的all-MiniLM-L6-v2模型进行文本嵌入
+4. **向量存储**：使用Chroma向量数据库存储向量
+5. **相似性检索**：根据用户问题检索最相关的3个文本块
+6. **答案生成**：结合检索结果和大模型生成答案
 
-### 3. 检索结果 - 带源文档
-![Retrieval Results](docs/screenshots/03_retrieval_results.png)
-- 展示LLM生成的答案
-- 显示检索到的相关文档片段
-- 标注来源和相关性评分
+### 模型配置
 
-### 4. 问答示例
-```
-Q: 如何安装Ollama？
-A: 根据您上传的文档，安装Ollama的步骤如下：
-   1. 访问Ollama官网下载安装程序
-   2. Windows/macOS用户可直接下载安装包
-   3. Linux用户可运行安装脚本
-   
-   [来源文档] 第2页，第15-20行
-```
-
-## 性能指标
-- **文档处理速度**: ~50KB/s（取决于文档复杂度）
-- **向量检索速度**: <100ms（Chroma向量数据库）
-- **LLM响应时间**: 2-5秒（Mistral 7B，取决于硬件）
-- **支持文档大小**: 单个文件 < 100MB
+- **嵌入模型**：all-MiniLM-L6-v2
+- **大模型**：qwen2:7b（可通过修改代码切换为其他Ollama模型）
+- **向量数据库**：Chroma
 
 ## 已知问题与改进方向
 
-### 已知问题
-1. **大文件处理**: 超大PDF文件（>100MB）可能导致内存溢出
-2. **模型切换**: 当前仅支持单个Ollama模型，需重启服务切换
-3. **中文支持**: 部分embedding模型对中文支持有限
-
-### 改进方向
-- [ ] 支持多种文档格式（Word、Excel、网页等）
-- [ ] 实现流式答案生成，提升用户体验
-- [ ] 添加答案评分和反馈机制
-- [ ] 支持多模型并行调用
-- [ ] 实现对话上下文记忆和多轮问答
-- [ ] 添加向量数据库持久化和备份功能
-- [ ] 优化文档分块策略，提升检索精度
-
-## 故障排除
-
-### Ollama连接失败
-```bash
-# 检查Ollama服务是否运行
-curl http://localhost:11434/api/tags
-
-# 如果无响应，重启Ollama服务
-ollama serve
-```
-
-### 内存不足
-- 减少chunk_size（在config.py中修改）
-- 使用更小的embedding模型
-- 限制单次检索的文档数量
-
-### 文档解析失败
-- 确保PDF文件不损坏
-- 尝试重新导出PDF（某些加密PDF可能无法解析）
+- [ ] 支持更多文档格式（如PPT、Excel）
+- [ ] 添加文档内容预览功能
+- [ ] 支持批量删除文档
+- [ ] 添加夜间模式
+- [ ] 支持导出问答记录
 
 ## 许可证
+
 MIT License
-
-## 贡献指南
-欢迎提交Issue和Pull Request！
-
-## 联系方式
-如有问题或建议，请联系项目维护者。
-
----
-**最后更新**: 2026年5月25日
